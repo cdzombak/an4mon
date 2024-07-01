@@ -35,7 +35,7 @@ Working within the `an4mon` directory, run the program with the `--scan` flag to
 With the device's address in hand, you'll need to create a configuration JSON file. See [config.example.json](config.example.json) in this repository for an example. The configuration file is a single, valid JSON object that supports the following keys:
 
 - `aranet_device_address`: The address of your Aranet4 device as discovered via `--scan`. Required.
-- `healthcheck_ping_url`: If provided, this URL will receive a GET request after the program has successfully read from the Aranet4 device and completed notifications and/or logging to Influx.
+- `healthcheck_ping_url`: If provided, this URL will receive a GET request after the program has successfully read from the Aranet4 device and completed notifications and/or logging to Influx. (Useful for monitoring via an [Uptime Kuma](https://github.com/louislam/uptime-kuma) push monitor.)
 
 **Notification-related keys:**
 

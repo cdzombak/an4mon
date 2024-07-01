@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.dzombak.an4mon</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/cdzombak/code/an4mon/venv/bin/python</string>
+		<string>/Users/cdzombak/code/an4mon/main.py</string>
+		<string>--config</string>
+		<string>/Users/cdzombak/.config/an4mon.json</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/Users/cdzombak/opt/log/launchd/an4mon.office.stderr</string>
+	<key>StandardOutPath</key>
+	<string>/Users/cdzombak/opt/log/launchd/an4mon.office.out.txt</string>
+	<key>StartInterval</key>
+	<integer>120</integer>
+</dict>
+</plist>

@@ -1,0 +1,22 @@
+{
+  "aranet_device_address": "31A25564-7171-3BFF-2146-43D5747978E9",
+  "healthcheck_ping_url": "https://uptimekuma.example.com:9001/api/push/abcdabcd?status=up&msg=OK&ping=",
+  "notify": true,
+  "ntfy_server": "https://ntfy.example.com",
+  "ntfy_token": "tk_0123456789ABCDEF",
+  "ntfy_topic": "office-co2",
+  "notify_yellow_every": 30,
+  "notify_red_every": 5,
+  "notify_room_name": "Office",
+  "ntfy_priority_yellow": "3",
+  "ntfy_priority_red": "5",
+  "state_file": "/Users/cdzombak/.local/an4mon-state.json",
+  "influx": true,
+  "influx_bucket": "dzhome/1-year",
+  "influx_host": "192.168.1.181",
+  "influx_port": 8086,
+  "influx_username": "me",
+  "influx_password": "foobarbaz",
+  "influx_measurement_name": "aranet4",
+  "influx_nametag": "office"
+}

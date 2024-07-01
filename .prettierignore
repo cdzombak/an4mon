@@ -1,0 +1,7 @@
+**/*.py
+**/*.sh
+
+venv
+
+LICENSE
+requirements.txt

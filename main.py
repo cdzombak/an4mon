@@ -9,6 +9,11 @@ from config import Config
 from influx import write_influx
 from ntfy import do_notification
 
+
+def eprint(*args_, **kwargs):
+    print(*args_, file=sys.stderr, **kwargs)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="an4mon",
@@ -49,12 +54,20 @@ if __name__ == "__main__":
     cfg = Config.from_file(args.config)
     if not cfg.influx and not cfg.notify and not args.print:
         print(
-            "config's 'influx' and 'notify' keys are both False, and --print was not given; nothing to do!"
+            "config's 'influx' and 'notify' keys are both False, "
+            "and --print was not given; nothing to do!"
         )
         sys.exit(1)
 
     now = datetime.datetime.now(datetime.UTC)
-    reading = ara_read(cfg.aranet_device_address)
+    try:
+        reading = ara_read(cfg.aranet_device_address)
+    except RuntimeError as e:
+        eprint(
+            f"{datetime.datetime.now()}: failed reading from "
+            f"{cfg.aranet_device_address}: {e}"
+        )
+        sys.exit(1)
     healthy = True
     if args.print:
         ara_print(cfg, reading)

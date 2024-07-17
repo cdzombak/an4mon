@@ -1,7 +1,6 @@
 bleak==0.22.2
 certifi==2024.7.4
 charset-normalizer==3.3.2
-claranet4==0.2.0
 defopt==6.4.0
 docutils==0.21.2
 idna==3.7

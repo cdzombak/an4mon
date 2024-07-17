@@ -1,31 +1,30 @@
+import asyncio
 import logging
 
-from claranet4.lib import discover_ara4s, read, Reading
+from libclaranet4 import scan_ara4s, read_ara4, Reading
 
 import co2
 import conv
 from config import Config
 
 
-def ara_scan():
+def ara_scan(runner: asyncio.Runner):
     # work around https://github.com/bede/claranet4/issues/2 :
     logging.captureWarnings(True)
-    # suppress default INFO-level messages from claranet4:
     logging.getLogger().setLevel(logging.ERROR)
 
-    for ara4 in discover_ara4s():
+    for ara4 in scan_ara4s(runner):
         print(f"{ara4.name} ({ara4.rssi} dBm)")
         print(f"\t{ara4.address}")
         print("")
 
 
-def ara_read(addr: str) -> Reading:
+def ara_read(runner: asyncio.Runner, addr: str) -> Reading:
     # work around https://github.com/bede/claranet4/issues/2 :
     logging.captureWarnings(True)
-    # suppress default INFO-level messages from claranet4:
     logging.getLogger().setLevel(logging.ERROR)
 
-    return read(addr)
+    return read_ara4(runner, addr)
 
 
 def ara_print(cfg: Config, r: Reading):

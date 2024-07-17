@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import datetime
 import sys
 
@@ -48,8 +49,9 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if args.scan:
-        ara_scan()
-        sys.exit(0)
+        with asyncio.Runner() as scan_runner:
+            ara_scan(scan_runner)
+            sys.exit(0)
 
     cfg = Config.from_file(args.config)
     if not cfg.influx and not cfg.notify and not args.print:
@@ -61,8 +63,9 @@ if __name__ == "__main__":
 
     now = datetime.datetime.now(datetime.UTC)
     try:
-        reading = ara_read(cfg.aranet_device_address)
-    except RuntimeError as e:
+        with asyncio.Runner() as read_runner:
+            reading = ara_read(read_runner, cfg.aranet_device_address)
+    except Exception as e:
         eprint(
             f"{datetime.datetime.now()}: failed reading from "
             f"{cfg.aranet_device_address}: {e}"

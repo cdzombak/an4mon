@@ -14,7 +14,7 @@
 	<key>RunAtLoad</key>
 	<true/>
 	<key>StandardErrorPath</key>
-	<string>/Users/cdzombak/opt/log/launchd/an4mon.office.stderr</string>
+	<string>/Users/cdzombak/opt/log/launchd/an4mon.office.err.txt</string>
 	<key>StandardOutPath</key>
 	<string>/Users/cdzombak/opt/log/launchd/an4mon.office.out.txt</string>
 	<key>StartInterval</key>

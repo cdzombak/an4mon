@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import math
 
 from libclaranet4 import scan_ara4s, read_ara4, Reading
 

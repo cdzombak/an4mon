@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import math
 
 from libclaranet4 import scan_ara4s, read_ara4, Reading
 
@@ -24,7 +25,12 @@ def ara_read(runner: asyncio.Runner, addr: str) -> Reading:
     logging.captureWarnings(True)
     logging.getLogger().setLevel(logging.ERROR)
 
-    return read_ara4(runner, addr)
+    result = read_ara4(runner, addr)
+    # I _always_ get humidity readings of X.3%,
+    # where Aranet displays X% (with no decimal):
+    result.humidity = float(int(result.humidity))
+
+    return result
 
 
 def ara_print(cfg: Config, r: Reading):

@@ -160,10 +160,16 @@ class Config:
         if self.influx_port <= 0 or self.influx_port > 65535:
             raise ConfigValidationError("influx_port must be between 1 and 65535")
         if (self.influx_username is None) != (self.influx_password is None):
-            raise ConfigValidationError("influx_username and influx_password must be both set or both missing")
-        if self.influx_username is not None and not isinstance(self.influx_username, str):
+            raise ConfigValidationError(
+                "influx_username and influx_password must be both set or both missing"
+            )
+        if self.influx_username is not None and not isinstance(
+            self.influx_username, str
+        ):
             raise ConfigValidationError("influx_username must be a string")
-        if self.influx_password is not None and not isinstance(self.influx_password, str):
+        if self.influx_password is not None and not isinstance(
+            self.influx_password, str
+        ):
             raise ConfigValidationError("influx_password must be a string")
         if not self.influx_measurement_name or not isinstance(
             self.influx_measurement_name, str
@@ -182,7 +188,9 @@ class Config:
         if not self.mqtt_topic or not isinstance(self.mqtt_topic, str):
             raise ConfigValidationError("mqtt_topic is required")
         if (self.mqtt_username is None) != (self.mqtt_password is None):
-            raise ConfigValidationError("mqtt_username and mqtt_password must be both set or both missing")
+            raise ConfigValidationError(
+                "mqtt_username and mqtt_password must be both set or both missing"
+            )
         if self.mqtt_username is not None and not isinstance(self.mqtt_username, str):
             raise ConfigValidationError("mqtt_username must be a string")
         if self.mqtt_password is not None and not isinstance(self.mqtt_password, str):

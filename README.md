@@ -81,8 +81,8 @@ mqtt:
       unique_id: "aranet4_office/co2"
       device:
         name: "Aranet4 Office"
-        identifiers: 
-        - "aranet4_office"
+        identifiers:
+          - "aranet4_office"
       state_topic: "sensors/co2/office"
       value_template: "{{ value_json.fields.co2_ppm }}"
       unit_of_measurement: "ppm"
@@ -93,8 +93,8 @@ mqtt:
       unique_id: "aranet4_office/temperature"
       device:
         name: "Aranet4 Office"
-        identifiers: 
-        - "aranet4_office"
+        identifiers:
+          - "aranet4_office"
       state_topic: "sensors/co2/office"
       value_template: "{{ value_json.fields.temp_f }}"
       unit_of_measurement: "°F"
@@ -105,8 +105,8 @@ mqtt:
       unique_id: "aranet4_office/humidity"
       device:
         name: "Aranet4 Office"
-        identifiers: 
-        - "aranet4_office"
+        identifiers:
+          - "aranet4_office"
       state_topic: "sensors/co2/office"
       value_template: "{{ value_json.fields.humidity_pct }}"
       unit_of_measurement: "%"
@@ -117,13 +117,13 @@ mqtt:
       unique_id: "aranet4_office/pressure"
       device:
         name: "Aranet4 Office"
-        identifiers: 
-        - "aranet4_office"
+        identifiers:
+          - "aranet4_office"
       state_topic: "sensors/co2/office"
       value_template: "{{ value_json.fields.pressure_mbar }}"
       unit_of_measurement: "mbar"
       device_class: "pressure"
-      state_class: "measurement"   
+      state_class: "measurement"
 ```
 
 ### Run the program

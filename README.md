@@ -3,6 +3,7 @@
 `an4mon` reads from a [Aranet4 CO2 monitor](https://aranet.com/products/aranet4-home) and optionally:
 
 - Logs the data to an InfluxDB database.
+- Sends the data to an MQTT broker.
 - Sends a notification via [Ntfy](https://docs.ntfy.sh/) when the CO2 level rises above a certain threshold or stays above the threshold for a certain amount of time.
 
 ## Installation

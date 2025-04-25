@@ -85,7 +85,7 @@ jobs:
       - name: Prettier
         run: prettier --check .
       - name: Actionlint
-        uses: raven-actions/actionlint@v1.0.3
+        uses: raven-actions/actionlint@01fce4f43a270a612932cb1c64d40505a029f821
 
   release:
     name: (Pre)Release
@@ -100,7 +100,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631
         with:
           prerelease: ${{ needs.meta.outputs.is_prerelease == 'true' }}
           generate_release_notes: true
@@ -116,7 +116,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Update running major/minor version tags
-        uses: sersoft-gmbh/running-release-tags-action@v3
+        uses: sersoft-gmbh/running-release-tags-action@890dc5c1d9edd0d0fef2fd67c6de2df641e720a6
         with:
           fail-on-non-semver-tag: true
           create-release: false
@@ -129,7 +129,7 @@ jobs:
     needs: [meta, lint, release, tags]
     steps:
       - name: Send success notification
-        uses: niniyas/ntfy-action@master
+        uses: niniyas/ntfy-action@2e4de8e810b0b28dba54344de960426adbfe136e
         if: ${{ !contains(needs.*.result, 'failure') && (needs.meta.outputs.is_release == 'true' || needs.meta.outputs.is_prerelease == 'true') }}
         with:
           url: "https://ntfy.cdzombak.net"
@@ -140,7 +140,7 @@ jobs:
           title: ${{ github.event.repository.name }} ${{ needs.meta.outputs.derived_version }} available
           details: ${{ github.event.repository.name }} version ${{ needs.meta.outputs.derived_version }} is now available.
       - name: Send failure notification
-        uses: niniyas/ntfy-action@master
+        uses: niniyas/ntfy-action@2e4de8e810b0b28dba54344de960426adbfe136e
         if: ${{ contains(needs.*.result, 'failure') }}
         with:
           url: "https://ntfy.cdzombak.net"

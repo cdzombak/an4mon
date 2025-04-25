@@ -70,6 +70,62 @@ With the device's address in hand, you'll need to create a configuration JSON fi
 - `mqtt_password`: MQTT broker password.
 - `mqtt_topic`: MQTT topic to publish to. Required if `mqtt` is `true`.
 
+### Home Assistant Integration
+
+To integrate your Aranet4 sensor with Home Assistant using MQTT, add the following to your `configuration.yaml`:
+
+```yaml
+mqtt:
+  sensor:
+    - name: "CO2"
+      unique_id: "aranet4_office/co2"
+      device:
+        name: "Aranet4 Office"
+        identifiers: 
+        - "aranet4_office"
+      state_topic: "sensors/co2/office"
+      value_template: "{{ value_json.fields.co2_ppm }}"
+      unit_of_measurement: "ppm"
+      device_class: "carbon_dioxide"
+      state_class: "measurement"
+
+    - name: "Temperature"
+      unique_id: "aranet4_office/temperature"
+      device:
+        name: "Aranet4 Office"
+        identifiers: 
+        - "aranet4_office"
+      state_topic: "sensors/co2/office"
+      value_template: "{{ value_json.fields.temp_f }}"
+      unit_of_measurement: "°F"
+      device_class: "temperature"
+      state_class: "measurement"
+
+    - name: "Humidity"
+      unique_id: "aranet4_office/humidity"
+      device:
+        name: "Aranet4 Office"
+        identifiers: 
+        - "aranet4_office"
+      state_topic: "sensors/co2/office"
+      value_template: "{{ value_json.fields.humidity_pct }}"
+      unit_of_measurement: "%"
+      device_class: "humidity"
+      state_class: "measurement"
+
+    - name: "Barometric Pressure"
+      unique_id: "aranet4_office/pressure"
+      device:
+        name: "Aranet4 Office"
+        identifiers: 
+        - "aranet4_office"
+      state_topic: "sensors/co2/office"
+      value_template: "{{ value_json.fields.pressure_mbar }}"
+      unit_of_measurement: "mbar"
+      device_class: "pressure"
+      state_class: "measurement"   
+```
+
 ### Run the program
 
 ```shell

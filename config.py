@@ -34,6 +34,7 @@ class Config:
     aranet_device_address: str
     notify: bool
     influx: bool
+    mqtt: bool
     healthcheck_ping_url: Optional[str]
     ntfy_server: str
     ntfy_token: Optional[str]
@@ -52,7 +53,12 @@ class Config:
     influx_username: Optional[str]
     influx_password: Optional[str]
     influx_measurement_name: Optional[str]
-    influx_nametag: str
+    device_name: str
+    mqtt_broker: Optional[str]
+    mqtt_port: int
+    mqtt_username: Optional[str]
+    mqtt_password: Optional[str]
+    mqtt_topic: Optional[str]
 
     @staticmethod
     def from_file(file_path: str) -> "Config":
@@ -65,6 +71,7 @@ class Config:
             aranet_device_address=data.get("aranet_device_address"),
             notify=data.get("notify", False),
             influx=data.get("influx", False),
+            mqtt=data.get("mqtt", False),
             healthcheck_ping_url=data.get("healthcheck_ping_url"),
             ntfy_server=data.get("ntfy_server", "https://ntfy.sh"),
             ntfy_token=data.get("ntfy_token"),
@@ -83,7 +90,12 @@ class Config:
             influx_username=data.get("influx_username"),
             influx_password=data.get("influx_password"),
             influx_measurement_name=data.get("influx_measurement_name"),
-            influx_nametag=data.get("influx_nametag", ""),
+            device_name=data.get("device_name") or data.get("influx_nametag", ""),
+            mqtt_broker=data.get("mqtt_broker"),
+            mqtt_port=data.get("mqtt_port", 1883),
+            mqtt_username=data.get("mqtt_username"),
+            mqtt_password=data.get("mqtt_password"),
+            mqtt_topic=data.get("mqtt_topic"),
         )
         result.validate()
         if result.ntfy_server.endswith("/"):
@@ -95,8 +107,11 @@ class Config:
             self.aranet_device_address, str
         ):
             raise ConfigValidationError("aranet_device_address is required")
+        if not self.device_name or not isinstance(self.device_name, str):
+            raise ConfigValidationError("device_name is required")
         self._validate_ntfy()
         self._validate_influx()
+        self._validate_mqtt()
 
     def _validate_ntfy(self):
         if not self.notify:
@@ -142,13 +157,33 @@ class Config:
             raise ConfigValidationError("influx_server is required")
         if not isinstance(self.influx_port, int):
             raise ConfigValidationError("influx_port must be an integer")
-        if self.influx_username and not isinstance(self.influx_username, str):
+        if self.influx_port <= 0 or self.influx_port > 65535:
+            raise ConfigValidationError("influx_port must be between 1 and 65535")
+        if (self.influx_username is None) != (self.influx_password is None):
+            raise ConfigValidationError("influx_username and influx_password must be both set or both missing")
+        if self.influx_username is not None and not isinstance(self.influx_username, str):
             raise ConfigValidationError("influx_username must be a string")
-        if self.influx_password and not isinstance(self.influx_password, str):
+        if self.influx_password is not None and not isinstance(self.influx_password, str):
             raise ConfigValidationError("influx_password must be a string")
         if not self.influx_measurement_name or not isinstance(
             self.influx_measurement_name, str
         ):
             raise ConfigValidationError("influx_measurement_name must be a string")
-        if not isinstance(self.influx_nametag, str):
-            raise ConfigValidationError("influx_nametag must be a string")
+
+    def _validate_mqtt(self):
+        if not self.mqtt:
+            return
+        if not self.mqtt_broker or not isinstance(self.mqtt_broker, str):
+            raise ConfigValidationError("mqtt_broker is required")
+        if not isinstance(self.mqtt_port, int):
+            raise ConfigValidationError("mqtt_port must be an integer")
+        if self.mqtt_port <= 0 or self.mqtt_port > 65535:
+            raise ConfigValidationError("mqtt_port must be between 1 and 65535")
+        if not self.mqtt_topic or not isinstance(self.mqtt_topic, str):
+            raise ConfigValidationError("mqtt_topic is required")
+        if (self.mqtt_username is None) != (self.mqtt_password is None):
+            raise ConfigValidationError("mqtt_username and mqtt_password must be both set or both missing")
+        if self.mqtt_username is not None and not isinstance(self.mqtt_username, str):
+            raise ConfigValidationError("mqtt_username must be a string")
+        if self.mqtt_password is not None and not isinstance(self.mqtt_password, str):
+            raise ConfigValidationError("mqtt_password must be a string")

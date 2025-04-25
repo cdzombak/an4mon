@@ -35,6 +35,7 @@ Working within the `an4mon` directory, run the program with the `--scan` flag to
 With the device's address in hand, you'll need to create a configuration JSON file. See [config.example.json](config.example.json) in this repository for an example. The configuration file is a single, valid JSON object that supports the following keys:
 
 - `aranet_device_address`: The address of your Aranet4 device as discovered via `--scan`. Required.
+- `device_name`: Name of the room/device. Written to the `aranet_name` tag for InfluxDB and MQTT. Required.
 - `healthcheck_ping_url`: If provided, this URL will receive a GET request after the program has successfully read from the Aranet4 device and completed notifications and/or logging to Influx. (Useful for monitoring via an [Uptime Kuma](https://github.com/louislam/uptime-kuma) push monitor.)
 
 **Notification-related keys:**
@@ -59,7 +60,15 @@ With the device's address in hand, you'll need to create a configuration JSON fi
 - `influx_username`: InfluxDB username.
 - `influx_password`: InfluxDB password.
 - `influx_measurement_name`: InfluxDB measurement name. Required if `influx` is `true`.
-- `influx_nametag`: Name of the room/device. If provided this is stored in the `aranet_name` tag on measurements written to InfluxDB.
+
+**MQTT-related keys:**
+
+- `mqtt`: Whether to publish data to an MQTT broker.
+- `mqtt_broker`: Your MQTT broker's hostname. Required if `mqtt` is `true`.
+- `mqtt_port`: The MQTT broker port.
+- `mqtt_username`: MQTT broker username.
+- `mqtt_password`: MQTT broker password.
+- `mqtt_topic`: MQTT topic to publish to. Required if `mqtt` is `true`.
 
 ### Run the program
 

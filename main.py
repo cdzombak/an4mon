@@ -7,12 +7,10 @@ import requests
 
 from aranet import ara_print, ara_read, ara_scan
 from config import Config
+from eprint import eprint
 from influx import write_influx
+from mqtt import write_mqtt
 from ntfy import do_notification
-
-
-def eprint(*args_, **kwargs):
-    print(*args_, file=sys.stderr, **kwargs)
 
 
 if __name__ == "__main__":
@@ -77,6 +75,8 @@ if __name__ == "__main__":
     if cfg.notify:
         do_notification(cfg, reading, now)
     if cfg.influx:
-        healthy = write_influx(cfg, reading, now)
+        healthy = healthy and write_influx(cfg, reading, now)
+    if cfg.mqtt:
+        healthy = healthy and write_mqtt(cfg, reading, now)
     if healthy and cfg.healthcheck_ping_url:
         requests.get(cfg.healthcheck_ping_url)

@@ -37,7 +37,7 @@ def write_influx(cfg: Config, reading: Reading, now: datetime.datetime) -> bool:
             {
                 "measurement": cfg.influx_measurement_name,
                 "tags": {
-                    "aranet_name": cfg.influx_nametag,
+                    "aranet_name": cfg.device_name,
                     "aranet_addr": cfg.aranet_device_address,
                 },
                 "time": now.isoformat(),

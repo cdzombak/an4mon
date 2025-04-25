@@ -1,5 +1,6 @@
 {
   "aranet_device_address": "31A25564-7171-3BFF-2146-43D5747978E9",
+  "device_name": "office",
   "healthcheck_ping_url": "https://uptimekuma.example.com:9001/api/push/abcdabcd?status=up&msg=OK&ping=",
   "notify": true,
   "ntfy_server": "https://ntfy.example.com",
@@ -18,5 +19,10 @@
   "influx_username": "me",
   "influx_password": "foobarbaz",
   "influx_measurement_name": "aranet4",
-  "influx_nametag": "office"
+  "mqtt": false,
+  "mqtt_broker": "mqtt.example.com",
+  "mqtt_port": 1883,
+  "mqtt_username": "me",
+  "mqtt_password": "foobarbaz",
+  "mqtt_topic": "sensors/co2/office"
 }

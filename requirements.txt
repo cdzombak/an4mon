@@ -6,6 +6,7 @@ docutils==0.21.2
 idna==3.7
 influxdb==5.3.2
 msgpack==1.0.8
+paho-mqtt==2.1.0
 pockets==0.9.1
 pyobjc-core==10.3.1
 pyobjc-framework-Cocoa==10.3.1

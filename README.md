@@ -114,6 +114,17 @@ mqtt:
       device_class: "humidity"
       state_class: "measurement"
 
+    - name: "Absolute Humidity"
+      unique_id: "aranet4_office/humidity_abs"
+      device:
+        name: "Aranet4 Office"
+        identifiers:
+          - "aranet4_office"
+      state_topic: "sensors/co2/office"
+      value_template: "{{ value_json.fields.humidity_abs }}"
+      unit_of_measurement: "g/m³"
+      state_class: "measurement"
+
     - name: "Barometric Pressure"
       unique_id: "aranet4_office/pressure"
       device:

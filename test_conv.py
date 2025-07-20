@@ -21,5 +21,5 @@ class TestAbsoluteHumidity(unittest.TestCase):
         self.assertAlmostEqual(result, 18.42, places=2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

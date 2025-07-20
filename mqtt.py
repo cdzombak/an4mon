@@ -35,6 +35,7 @@ def write_mqtt(cfg: Config, reading: Reading, now: datetime.datetime) -> bool:
                             conv.celsius_to_fahrenheit(reading.temperature)
                         ),
                         "humidity_pct": float(reading.humidity),
+                        "humidity_abs": float(conv.absolute_humidity_g_m3(reading.temperature, reading.humidity)),
                         "pressure_mbar": float(reading.pressure),
                         "pressure_inHg": float(conv.mbar_to_inhg(reading.pressure)),
                         "co2_ppm": int(reading.co2),

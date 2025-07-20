@@ -89,7 +89,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install Python
@@ -124,7 +124,7 @@ jobs:
 
   tags:
     name: Update Release Tags
-    needs: [meta, test, release]
+    needs: [meta, release]
     if: needs.meta.outputs.is_release == 'true'
     runs-on: ubuntu-latest
     permissions:

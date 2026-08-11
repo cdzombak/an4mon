@@ -56,6 +56,8 @@ With the device's address in hand, you'll need to create a configuration JSON fi
 
 Setting `web_external_base_url` enables muting notifications: each CO2 notification carries "Mute Xh" and "Mute Yh" buttons, which send a request to an embedded web server in `an4mon`. While muted, notifications are suppressed — unless the CO2 level escalates from yellow to red, in which case that one notification is sent and the mute otherwise remains in effect. Muting while already red keeps red-level reminders suppressed. A new mute always replaces any previous one. When you mute, a minimum-priority confirmation notification arrives with an "Unmute" button.
 
+The same embedded web server also exposes `GET /health`, returning `200 {"status": "ok"}` after a recent successful sensor poll, or `503 {"status": "unhealthy", ...}` if there hasn't been one in over `2 * poll_interval` minutes. Useful for uptime monitoring (e.g. an Uptime Kuma HTTP(s) monitor) when `web_external_base_url` is set.
+
 - `web_external_base_url`: External base URL for the embedded web server, used to build the mute button URLs (e.g. `https://mymachine.tailnet-example.ts.net:5560`). If unset, no web server runs and notifications have no mute buttons. Note that the Ntfy web interface and iOS app will not run actions against non-HTTPS URLs; TLS may be terminated externally (e.g. by [Tailscale](https://tailscale.com/kb/1242/tailscale-serve)).
 - `web_port`: Port the web server binds to. Defaults to `5560`.
 - `web_bind_to`: IP address the web server binds to. Defaults to `*`.

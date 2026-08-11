@@ -83,20 +83,25 @@ def main():
     procs = []
 
     ntfy_queue = None
+    health_ns = None
     if cfg.notify:
         ntfy_queue = multiprocessing.Queue()
         mute_ns = None
         if cfg.web_external_base_url:
-            mute_manager = multiprocessing.Manager()
-            mute_ns = mute_manager.Namespace()
+            web_manager = multiprocessing.Manager()
+            mute_ns = web_manager.Namespace()
             mute_ns.mute_until = None
-            web_server = WebServer(cfg, mute_ns, ntfy_queue, log_level=ll)
+            health_ns = web_manager.Namespace()
+            health_ns.last_poll_at = None
+            web_server = WebServer(cfg, mute_ns, health_ns, ntfy_queue, log_level=ll)
             procs.append(
                 multiprocessing.Process(target=web_server.run, args=(exit_queue,))
             )
         notifier = Notifier(cfg, ntfy_queue, log_level=ll, mute_ns=mute_ns)
         procs.append(multiprocessing.Process(target=notifier.run, args=(exit_queue,)))
-    poller = Poller(cfg, ntfy_queue, log_level=ll, print_readings=args.print)
+    poller = Poller(
+        cfg, ntfy_queue, log_level=ll, print_readings=args.print, health_ns=health_ns
+    )
     procs.append(multiprocessing.Process(target=poller.run, args=(exit_queue,)))
 
     logger.info("starting child processes ...")

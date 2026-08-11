@@ -2,6 +2,7 @@ import datetime
 import logging
 import multiprocessing
 from multiprocessing.managers import Namespace
+from typing import Final
 
 import waitress
 from flask import Flask, jsonify, request
@@ -12,17 +13,21 @@ from config import Config
 from log import LOG_DEFAULT_FMT
 from ntfy import MuteEvent
 
+HEALTH_UNHEALTHY_POLLS: Final = 2  # unhealthy after this many missed poll intervals
+
 
 class WebServer(lib_mpex.ChildProcess):
     def __init__(
         self,
         config: Config,
         mute_ns: Namespace,
+        health_ns: Namespace,
         ntfy_queue: multiprocessing.Queue,  # of ReadingEvent | MuteEvent
         log_level: int,
     ):
         self._config = config
         self._mute_ns = mute_ns
+        self._health_ns = health_ns
         self._ntfy_queue = ntfy_queue
         self._log_level = log_level
 
@@ -32,8 +37,28 @@ class WebServer(lib_mpex.ChildProcess):
         logging.getLogger("waitress").setLevel(self._log_level + 10)
         logger.info("starting web server")
 
+        unhealthy_t = datetime.timedelta(
+            minutes=HEALTH_UNHEALTHY_POLLS * self._config.poll_interval
+        )
+
         app = Flask("an4mon")
         CORS(app)
+
+        @app.route("/health", methods=["GET"])
+        def health():
+            last_poll_at = self._health_ns.last_poll_at
+            if last_poll_at is None:
+                return jsonify(
+                    {"status": "unhealthy", "error": "no successful poll yet"}
+                ), 503
+            if datetime.datetime.now(datetime.UTC) - last_poll_at >= unhealthy_t:
+                return jsonify(
+                    {
+                        "status": "unhealthy",
+                        "error": f"no successful poll in over {unhealthy_t}",
+                    }
+                ), 503
+            return jsonify({"status": "ok"})
 
         @app.route("/mute", methods=["POST"])
         def mute():

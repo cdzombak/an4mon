@@ -3,6 +3,7 @@ import datetime
 import logging
 import multiprocessing
 import time
+from multiprocessing.managers import Namespace
 from typing import Final, Optional
 
 import requests
@@ -25,11 +26,13 @@ class Poller(lib_mpex.ChildProcess):
         ntfy_queue: Optional[multiprocessing.Queue],  # of ReadingEvent
         log_level: int,
         print_readings: bool,
+        health_ns: Optional[Namespace] = None,
     ):
         self._config = config
         self._ntfy_queue = ntfy_queue
         self._log_level = log_level
         self._print_readings = print_readings
+        self._health_ns = health_ns
 
     def _run(self):
         logger = logging.getLogger(__name__)
@@ -57,6 +60,8 @@ class Poller(lib_mpex.ChildProcess):
             f"{reading.temperature:.1f} °C, {reading.humidity:.0f}% RH, "
             f"{reading.pressure} mbar"
         )
+        if self._health_ns is not None:
+            self._health_ns.last_poll_at = now
         if self._print_readings:
             ara_print(self._config, reading)
 

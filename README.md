@@ -64,7 +64,7 @@ Setting `web_external_base_url` enables muting notifications: each CO2 notificat
 - `mute_short_h`: Duration of the short mute button, in hours. Defaults to `2`.
 - `mute_long_h`: Duration of the long mute button, in hours. Defaults to `6`.
 
-The same web server also exposes `GET /health`, returning `200 {"status": "ok"}` after a recent successful sensor poll, or `503 {"status": "unhealthy", ...}` if there hasn't been one in over `2 * poll_interval` minutes.
+The same web server also exposes `GET /health`, returning `200 {"status": "ok"}` after a recent successful sensor poll, or `503 {"status": "unhealthy", ...}` if there hasn't been one in over `3 * poll_interval` minutes.
 
 **Influx-related keys:**
 

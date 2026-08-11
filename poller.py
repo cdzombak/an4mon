@@ -42,8 +42,11 @@ class Poller(lib_mpex.ChildProcess):
         interval_s = self._config.poll_interval * 60
         with asyncio.Runner() as runner:
             while True:
+                started_at = time.monotonic()
                 self._poll_once(logger, runner)
-                time.sleep(interval_s)
+                # sleep to a fixed cadence, so the time a read takes (up to tens
+                # of seconds, and longer when it fails) doesn't drift polling:
+                time.sleep(max(0.0, interval_s - (time.monotonic() - started_at)))
 
     def _poll_once(self, logger: logging.Logger, runner: asyncio.Runner):
         now = datetime.datetime.now(datetime.UTC)

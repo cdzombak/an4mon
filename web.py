@@ -13,7 +13,7 @@ from config import Config
 from log import LOG_DEFAULT_FMT
 from ntfy import MuteEvent
 
-HEALTH_UNHEALTHY_POLLS: Final = 2  # unhealthy after this many missed poll intervals
+HEALTH_UNHEALTHY_POLLS: Final = 3  # unhealthy after this many missed poll intervals
 MAX_MUTE_S: Final = 30 * 24 * 60 * 60  # longest accepted mute request
 
 

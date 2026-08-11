@@ -14,6 +14,7 @@ from log import LOG_DEFAULT_FMT
 from ntfy import MuteEvent
 
 HEALTH_UNHEALTHY_POLLS: Final = 2  # unhealthy after this many missed poll intervals
+MAX_MUTE_S: Final = 30 * 24 * 60 * 60  # longest accepted mute request
 
 
 class WebServer(lib_mpex.ChildProcess):
@@ -63,9 +64,14 @@ class WebServer(lib_mpex.ChildProcess):
         @app.route("/mute", methods=["POST"])
         def mute():
             body = request.get_json(silent=True)
-            if body is None or not isinstance(body.get("s"), int):
-                return jsonify({"error": "body must be JSON with int key 's'"}), 400
-            secs: int = body["s"]
+            if not isinstance(body, dict):
+                return jsonify({"error": "body must be a JSON object"}), 400
+            secs = body.get("s")
+            # bool is a subclass of int, but is not a meaningful duration:
+            if not isinstance(secs, int) or isinstance(secs, bool):
+                return jsonify({"error": "'s' must be an integer"}), 400
+            if secs > MAX_MUTE_S:
+                return jsonify({"error": f"'s' must be at most {MAX_MUTE_S}"}), 400
 
             now = datetime.datetime.now(datetime.UTC)
             if secs < 1:

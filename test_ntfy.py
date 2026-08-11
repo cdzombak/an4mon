@@ -3,7 +3,7 @@ import unittest
 
 from co2 import Co2WarningLevel
 from config import Config
-from ntfy import should_notify
+from ntfy import fmt_duration, mute_action, should_notify
 
 
 def _cfg() -> Config:
@@ -103,6 +103,118 @@ class TestShouldNotify(unittest.TestCase):
                 self.now,
             )
         )
+
+
+class TestShouldNotifyMuted(unittest.TestCase):
+    def setUp(self):
+        self.cfg = _cfg()
+        self.now = datetime.datetime(2026, 1, 1, 12, 0, tzinfo=datetime.UTC)
+        self.mute_until = self.now + datetime.timedelta(hours=1)
+        self.long_ago = self.now - datetime.timedelta(hours=1)
+
+    def test_mute_suppresses_yellow_after_green(self):
+        self.assertFalse(
+            should_notify(
+                self.cfg,
+                Co2WarningLevel.GREEN,
+                self.long_ago,
+                Co2WarningLevel.YELLOW,
+                self.now,
+                self.mute_until,
+            )
+        )
+
+    def test_mute_suppresses_yellow_renotify(self):
+        self.assertFalse(
+            should_notify(
+                self.cfg,
+                Co2WarningLevel.YELLOW,
+                self.long_ago,
+                Co2WarningLevel.YELLOW,
+                self.now,
+                self.mute_until,
+            )
+        )
+
+    def test_mute_suppresses_red_renotify(self):
+        self.assertFalse(
+            should_notify(
+                self.cfg,
+                Co2WarningLevel.RED,
+                self.long_ago,
+                Co2WarningLevel.RED,
+                self.now,
+                self.mute_until,
+            )
+        )
+
+    def test_escalation_to_red_breaks_through_mute(self):
+        for last_level in (Co2WarningLevel.GREEN, Co2WarningLevel.YELLOW):
+            self.assertTrue(
+                should_notify(
+                    self.cfg,
+                    last_level,
+                    self.now,
+                    Co2WarningLevel.RED,
+                    self.now,
+                    self.mute_until,
+                )
+            )
+
+    def test_expired_mute_has_no_effect(self):
+        self.assertTrue(
+            should_notify(
+                self.cfg,
+                Co2WarningLevel.YELLOW,
+                self.long_ago,
+                Co2WarningLevel.YELLOW,
+                self.now,
+                self.now - datetime.timedelta(minutes=1),
+            )
+        )
+
+    def test_no_mute_behaves_as_before(self):
+        self.assertTrue(
+            should_notify(
+                self.cfg,
+                Co2WarningLevel.YELLOW,
+                self.long_ago,
+                Co2WarningLevel.YELLOW,
+                self.now,
+                None,
+            )
+        )
+
+
+class TestMuteAction(unittest.TestCase):
+    def test_mute_blob(self):
+        self.assertEqual(
+            mute_action("Mute 2h", 7200, "https://example.com:5560"),
+            "http, Mute 2h, https://example.com:5560/mute, "
+            "body='{\"s\": 7200}', "
+            "headers.content-type=application/json, clear=true",
+        )
+
+    def test_unmute_blob(self):
+        self.assertEqual(
+            mute_action("Unmute", 0, "https://example.com"),
+            "http, Unmute, https://example.com/mute, "
+            "body='{\"s\": 0}', "
+            "headers.content-type=application/json, clear=true",
+        )
+
+
+class TestFmtDuration(unittest.TestCase):
+    def test_whole_hours(self):
+        self.assertEqual(fmt_duration(7200), "2h")
+        self.assertEqual(fmt_duration(21600), "6h")
+
+    def test_minutes_only(self):
+        self.assertEqual(fmt_duration(600), "10m")
+        self.assertEqual(fmt_duration(60), "1m")
+
+    def test_hours_and_minutes(self):
+        self.assertEqual(fmt_duration(5400), "1h 30m")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # `an4mon`: Aranet4 CO2 monitor & InfluxDB logger
 
-`an4mon` reads from a [Aranet4 CO2 monitor](https://aranet.com/products/aranet4-home) and optionally:
+`an4mon` is a daemon that periodically reads from a [Aranet4 CO2 monitor](https://aranet.com/products/aranet4-home) and optionally:
 
 - Logs the data to an InfluxDB database.
 - Sends the data to an MQTT broker.
@@ -37,7 +37,8 @@ With the device's address in hand, you'll need to create a configuration JSON fi
 
 - `aranet_device_address`: The address of your Aranet4 device as discovered via `--scan`. Required.
 - `device_name`: Name of the room/device. Written to the `aranet_name` tag for InfluxDB and MQTT. Required.
-- `healthcheck_ping_url`: If provided, this URL will receive a GET request after the program has successfully read from the Aranet4 device and completed notifications and/or logging to Influx. (Useful for monitoring via an [Uptime Kuma](https://github.com/louislam/uptime-kuma) push monitor.)
+- `poll_interval`: How often to read from the sensor, in minutes. Defaults to `2`.
+- `healthcheck_ping_url`: If provided, this URL will receive a GET request after each successful read from the Aranet4 device and completed logging to Influx/MQTT. (Useful for monitoring via an [Uptime Kuma](https://github.com/louislam/uptime-kuma) push monitor.)
 
 **Notification-related keys:**
 
@@ -50,7 +51,6 @@ With the device's address in hand, you'll need to create a configuration JSON fi
 - `notify_room_name`: The name of the room where the sensor is located, e.g. "Office".
 - `ntfy_priority_yellow`: [Ntfy priority](https://docs.ntfy.sh/publish/#message-priority) for 'yellow' CO2 level notifications.
 - `ntfy_priority_red`: [Ntfy priority](https://docs.ntfy.sh/publish/#message-priority) for 'red' CO2 level notifications.
-- `state_file`: Path where the program will keep track of the last time it sent a notification. Required if `notify` is `true`.
 
 **Influx-related keys:**
 
@@ -144,19 +144,19 @@ mqtt:
 ./venv/bin/python ./main.py --config /path/to/config.json --print
 ```
 
-The optional `--print` argument will print the data from the Aranet4 sensor to standard output, in addition to handling logging to Influx and notifications.
+The program runs as a daemon, reading from the sensor every `poll_interval` minutes. The optional `--print` argument will print each reading from the Aranet4 sensor to standard output, in addition to handling logging to Influx and notifications. The optional `--debug` argument prints debug-level logs to standard error.
 
-### Set up a cron or launchd job
+Polling every 2 minutes (the default) seems to result in sufficiently up-to-date data.
 
-Running the program every 2 minutes seems to result in sufficiently up-to-date data.
+### Set up a launchd job
 
-On macOS, do this by installing a launch agent. See [`com.dzombak.an4mon.plist`](com.dzombak.an4mon.plist) in this repository for an example. You'll need to modify the paths in that `.plist` file to match your username, `an4mon` installation, and config file path. Then, copy the `.plist` file to `~/Library/LaunchAgents/` and load it with:
+On macOS, keep the daemon running by installing a launch agent. See [`com.dzombak.an4mon.plist`](com.dzombak.an4mon.plist) in this repository for an example. You'll need to modify the paths in that `.plist` file to match your username, `an4mon` installation, and config file path. Then, copy the `.plist` file to `~/Library/LaunchAgents/` and load it with:
 
 ```shell
 launchctl load ~/Library/LaunchAgents/com.dzombak.an4mon.plist
 ```
 
-On Linux, running the program every few minutes via cron is an exercise left to the reader.
+On Linux, keeping the daemon running via a systemd service is an exercise left to the reader.
 
 ## License
 

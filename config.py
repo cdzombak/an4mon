@@ -46,7 +46,7 @@ class Config:
     co2_red: int
     ntfy_priority_yellow: str
     ntfy_priority_red: str
-    state_file: Optional[str]
+    poll_interval: int
     influx_bucket: Optional[str]
     influx_host: Optional[str]
     influx_port: int
@@ -83,7 +83,7 @@ class Config:
             ntfy_priority_yellow=data.get("ntfy_priority_yellow", "3"),
             ntfy_priority_red=data.get("ntfy_priority_red", "5"),
             notify_room_name=data.get("notify_room_name"),
-            state_file=data.get("state_file"),
+            poll_interval=data.get("poll_interval", 2),
             influx_bucket=data.get("influx_bucket"),
             influx_host=data.get("influx_host"),
             influx_port=data.get("influx_port", 8086),
@@ -109,6 +109,8 @@ class Config:
             raise ConfigValidationError("aranet_device_address is required")
         if not self.device_name or not isinstance(self.device_name, str):
             raise ConfigValidationError("device_name is required")
+        if not isinstance(self.poll_interval, int) or self.poll_interval < 1:
+            raise ConfigValidationError("poll_interval must be a positive integer")
         self._validate_ntfy()
         self._validate_influx()
         self._validate_mqtt()
@@ -124,10 +126,6 @@ class Config:
             raise ConfigValidationError("ntfy_priority_yellow must be a string")
         if not isinstance(self.ntfy_priority_red, str):
             raise ConfigValidationError("ntfy_priority_red must be a string")
-        if not self.state_file or not isinstance(self.state_file, str):
-            raise ConfigValidationError(
-                "state_file is required for notification support"
-            )
         if self.ntfy_priority_red not in NtfyPriority.all_values():
             raise ConfigValidationError(
                 f"ntfy_priority_red must be one of {NtfyPriority.all_values()}"

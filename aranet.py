@@ -8,10 +8,15 @@ import conv
 from config import Config
 
 
-def ara_scan(runner: asyncio.Runner):
-    # work around https://github.com/bede/claranet4/issues/2 :
+def _quiet_ble_warnings():
+    # work around https://github.com/bede/claranet4/issues/2 without
+    # touching the root logger level:
     logging.captureWarnings(True)
-    logging.getLogger().setLevel(logging.ERROR)
+    logging.getLogger("py.warnings").setLevel(logging.ERROR)
+
+
+def ara_scan(runner: asyncio.Runner):
+    _quiet_ble_warnings()
 
     for ara4 in scan_ara4s(runner):
         print(f"{ara4.name} ({ara4.rssi} dBm)")
@@ -20,9 +25,7 @@ def ara_scan(runner: asyncio.Runner):
 
 
 def ara_read(runner: asyncio.Runner, addr: str) -> Reading:
-    # work around https://github.com/bede/claranet4/issues/2 :
-    logging.captureWarnings(True)
-    logging.getLogger().setLevel(logging.ERROR)
+    _quiet_ble_warnings()
 
     result = read_ara4(runner, addr)
     # I _always_ get humidity readings of X.3%,

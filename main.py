@@ -1,19 +1,19 @@
 import argparse
 import asyncio
-import datetime
+import logging
+import multiprocessing
 import sys
+import traceback
 
-import requests
-
-from aranet import ara_print, ara_read, ara_scan
+import lib_mpex
+from aranet import ara_scan
 from config import Config
-from eprint import eprint
-from influx import write_influx
-from mqtt import write_mqtt
-from ntfy import do_notification
+from log import LOG_DEFAULT_FMT
+from ntfy import Notifier
+from poller import Poller
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(
         prog="an4mon",
     )
@@ -37,7 +37,21 @@ if __name__ == "__main__":
         required=False,
         action="store_true",
     )
+    parser.add_argument(
+        "--debug",
+        help="Print debug-level logs (to stderr)",
+        required=False,
+        action="store_true",
+    )
     args = parser.parse_args()
+
+    logger = logging.getLogger("main")
+    ll = logging.DEBUG if args.debug else logging.INFO
+    logging.basicConfig(level=ll, format=LOG_DEFAULT_FMT)
+
+    if sys.version_info < (3, 12):
+        logger.error("Python 3.12 or newer is required.")
+        sys.exit(1)
 
     if args.scan and args.config:
         print("--scan and --config are mutually exclusive")
@@ -52,31 +66,49 @@ if __name__ == "__main__":
             sys.exit(0)
 
     cfg = Config.from_file(args.config)
-    if not cfg.influx and not cfg.notify and not args.print:
+    if not cfg.influx and not cfg.notify and not cfg.mqtt and not args.print:
         print(
-            "config's 'influx' and 'notify' keys are both False, "
+            "config's 'influx', 'notify', and 'mqtt' keys are all False, "
             "and --print was not given; nothing to do!"
         )
         sys.exit(1)
 
-    now = datetime.datetime.now(datetime.UTC)
-    try:
-        with asyncio.Runner() as read_runner:
-            reading = ara_read(read_runner, cfg.aranet_device_address)
-    except Exception as e:
-        eprint(
-            f"{datetime.datetime.now()}: failed reading from "
-            f"{cfg.aranet_device_address}: {e}"
-        )
-        sys.exit(1)
-    healthy = True
-    if args.print:
-        ara_print(cfg, reading)
+    exit_queue = multiprocessing.Queue()
+    procs = []
+
+    ntfy_queue = None
     if cfg.notify:
-        do_notification(cfg, reading, now)
-    if cfg.influx:
-        healthy = healthy and write_influx(cfg, reading, now)
-    if cfg.mqtt:
-        healthy = healthy and write_mqtt(cfg, reading, now)
-    if healthy and cfg.healthcheck_ping_url:
-        requests.get(cfg.healthcheck_ping_url)
+        ntfy_queue = multiprocessing.Queue()
+        notifier = Notifier(cfg, ntfy_queue, log_level=ll)
+        procs.append(multiprocessing.Process(target=notifier.run, args=(exit_queue,)))
+    poller = Poller(cfg, ntfy_queue, log_level=ll, print_readings=args.print)
+    procs.append(multiprocessing.Process(target=poller.run, args=(exit_queue,)))
+
+    def my_exit(error: bool):
+        logger.debug(f"exiting ({'success' if not error else 'with error'}) ...")
+        for p in procs:
+            p.terminate()
+        sys.exit(1 if error else 0)
+
+    logger.info("starting child processes ...")
+    for p in procs:
+        p.start()
+
+    while any(p.is_alive() for p in procs):
+        e: lib_mpex.ChildExit = exit_queue.get()
+        if e.is_exc():
+            logger.error(f"{e.exc_info[0]} {e.exc_info[1]}")
+            logger.error(f"Error in {e.class_name} (pid {e.pid}): {e.error}")
+            traceback.print_exception(*e.exc_info)
+            my_exit(True)
+        else:
+            logger.info(f"{e.class_name} (pid {e.pid}) exited: {e.error}")
+            my_exit(False)
+
+    for p in procs:
+        p.join()
+
+
+if __name__ == "__main__":
+    multiprocessing.freeze_support()
+    main()

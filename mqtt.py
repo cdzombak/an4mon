@@ -1,13 +1,13 @@
 import datetime
 import json
+import logging
 
 import paho.mqtt.publish as publish
 
-from claranet4.lib import Reading
 from co2 import Co2WarningLevel
 from config import Config
 import conv
-from eprint import eprint
+from libclaranet4 import Reading
 
 
 def write_mqtt(cfg: Config, reading: Reading, now: datetime.datetime) -> bool:
@@ -55,8 +55,7 @@ def write_mqtt(cfg: Config, reading: Reading, now: datetime.datetime) -> bool:
         )
         return True
     except Exception as e:
-        eprint(
-            f"{datetime.datetime.now()}: failed publishing to MQTT '{cfg.mqtt_broker}'"
-            f": {e}"
+        logging.getLogger(__name__).error(
+            f"failed publishing to MQTT '{cfg.mqtt_broker}': {e}"
         )
         return False

@@ -1,85 +1,94 @@
 import datetime
-import json
+import logging
+import multiprocessing
 from dataclasses import dataclass
 
 import requests
-from claranet4.lib import Reading
 
+import lib_mpex
 from co2 import Co2WarningLevel
 from config import Config
+from log import LOG_DEFAULT_FMT
+
+NTFY_TIMEOUT_S = 10.0
 
 
-@dataclass
-class NtfyState:
-    last_notification_level: Co2WarningLevel
-    last_time: datetime.datetime
-
-    @staticmethod
-    def from_file(file_path: str) -> "NtfyState":
-        with open(file_path, "r") as f:
-            return NtfyState.from_dict(json.load(f))
-
-    @staticmethod
-    def from_dict(data: dict) -> "NtfyState":
-        return NtfyState(
-            last_notification_level=Co2WarningLevel.from_str(
-                data.get("last_notification_level", Co2WarningLevel.GREEN.value)
-            ),
-            last_time=datetime.datetime.fromisoformat(
-                data.get("last_time", "1970-01-01T00:00:00")
-            ),
-        )
-
-    def to_dict(self) -> dict:
-        return {
-            "last_notification_level": self.last_notification_level.value,
-            "last_time": self.last_time.isoformat(),
-        }
-
-    def to_file(self, file_path: str):
-        with open(file_path, "w") as f:
-            json.dump(self.to_dict(), f)
+@dataclass(frozen=True)
+class ReadingEvent:
+    co2: int
+    t: datetime.datetime
 
 
-def do_notification(cfg: Config, reading: Reading, now: datetime.datetime):
-    try:
-        state = NtfyState.from_file(cfg.state_file)
-    except FileNotFoundError:
-        state = NtfyState(
-            last_notification_level=Co2WarningLevel.GREEN,
-            last_time=datetime.datetime.min,
-        )
-    warning_level = Co2WarningLevel.from_ppm(cfg, reading.co2)
-    send_notification = False
+def should_notify(
+    cfg: Config,
+    last_level: Co2WarningLevel,
+    last_time: datetime.datetime,
+    level: Co2WarningLevel,
+    now: datetime.datetime,
+) -> bool:
+    if level == Co2WarningLevel.RED:
+        if last_level != Co2WarningLevel.RED:
+            return True
+        return last_time + datetime.timedelta(minutes=cfg.notify_red_every) < now
+    elif level == Co2WarningLevel.YELLOW:
+        if last_level == Co2WarningLevel.GREEN:
+            return True
+        return last_time + datetime.timedelta(minutes=cfg.notify_yellow_every) < now
+    return False
 
-    if warning_level == Co2WarningLevel.RED:
-        if state.last_notification_level != Co2WarningLevel.RED:
-            send_notification = True
-        elif state.last_time + datetime.timedelta(minutes=cfg.notify_red_every) < now:
-            send_notification = True
-    elif warning_level == Co2WarningLevel.YELLOW:
-        if state.last_notification_level == Co2WarningLevel.GREEN:
-            send_notification = True
-        elif (
-            state.last_time + datetime.timedelta(minutes=cfg.notify_yellow_every) < now
-        ):
-            send_notification = True
 
-    if not send_notification:
-        return
+class Notifier(lib_mpex.ChildProcess):
+    def __init__(
+        self,
+        config: Config,
+        input_queue: multiprocessing.Queue,  # of ReadingEvent
+        log_level: int,
+    ):
+        self._config = config
+        self._input_queue = input_queue
+        self._log_level = log_level
+        self._last_level = Co2WarningLevel.GREEN
+        self._last_time = datetime.datetime.min.replace(tzinfo=datetime.UTC)
 
-    headers = {
-        "Tags": warning_level.ntfy_tag(),
-    }
-    if cfg.ntfy_token:
-        headers["Authorization"] = "Bearer " + cfg.ntfy_token
+    def _run(self):
+        logger = logging.getLogger(__name__)
+        logging.basicConfig(level=self._log_level, format=LOG_DEFAULT_FMT)
+        logger.info("starting notifier")
 
-    requests.post(
-        f"{cfg.ntfy_server}/{cfg.ntfy_topic}",
-        data=f"{cfg.notify_room_name}: CO2 {reading.co2} ppm".encode("utf-8"),
-        headers=headers,
-    )
+        while True:
+            ev: ReadingEvent = self._input_queue.get()
+            level = Co2WarningLevel.from_ppm(self._config, ev.co2)
+            logger.debug(f"received reading: {ev.co2} ppm ({level.value})")
 
-    state.last_notification_level = warning_level
-    state.last_time = now
-    state.to_file(cfg.state_file)
+            if not should_notify(
+                self._config, self._last_level, self._last_time, level, ev.t
+            ):
+                continue
+
+            headers = {
+                "Tags": level.ntfy_tag(),
+                "Priority": (
+                    self._config.ntfy_priority_red
+                    if level == Co2WarningLevel.RED
+                    else self._config.ntfy_priority_yellow
+                ),
+            }
+            if self._config.ntfy_token:
+                headers["Authorization"] = "Bearer " + self._config.ntfy_token
+
+            message = f"{self._config.notify_room_name}: CO2 {ev.co2} ppm"
+            try:
+                resp = requests.post(
+                    f"{self._config.ntfy_server}/{self._config.ntfy_topic}",
+                    data=message.encode("utf-8"),
+                    headers=headers,
+                    timeout=NTFY_TIMEOUT_S,
+                )
+                resp.raise_for_status()
+                logger.info(f"notification '{message}' sent")
+            except requests.RequestException as e:
+                logger.error(f"error sending notification: {e}")
+                continue
+
+            self._last_level = level
+            self._last_time = ev.t

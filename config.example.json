@@ -1,6 +1,7 @@
 {
   "aranet_device_address": "31A25564-7171-3BFF-2146-43D5747978E9",
   "device_name": "office",
+  "poll_interval": 2,
   "healthcheck_ping_url": "https://uptimekuma.example.com:9001/api/push/abcdabcd?status=up&msg=OK&ping=",
   "notify": true,
   "ntfy_server": "https://ntfy.example.com",
@@ -11,7 +12,6 @@
   "notify_room_name": "Office",
   "ntfy_priority_yellow": "3",
   "ntfy_priority_red": "5",
-  "state_file": "/Users/cdzombak/.local/an4mon-state.json",
   "influx": true,
   "influx_bucket": "dzhome/1-year",
   "influx_host": "192.168.1.181",

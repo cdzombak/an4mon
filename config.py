@@ -92,7 +92,7 @@ class Config:
             mute_long_h=data.get("mute_long_h", 6),
             web_external_base_url=data.get("web_external_base_url"),
             web_port=data.get("web_port", 5560),
-            web_bind_to=data.get("web_bind_to", "*"),
+            web_bind_to=data.get("web_bind_to", "127.0.0.1"),
             notify_room_name=data.get("notify_room_name"),
             poll_interval=data.get("poll_interval", 2),
             influx_bucket=data.get("influx_bucket"),

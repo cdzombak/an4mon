@@ -16,7 +16,7 @@
   "mute_long_h": 6,
   "web_external_base_url": "https://mymachine.tailnet-example.ts.net:5560",
   "web_port": 5560,
-  "web_bind_to": "*",
+  "web_bind_to": "127.0.0.1",
   "influx": true,
   "influx_bucket": "dzhome/1-year",
   "influx_host": "192.168.1.181",

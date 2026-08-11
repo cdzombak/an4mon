@@ -60,7 +60,7 @@ Setting `web_external_base_url` enables muting notifications: each CO2 notificat
 
 - `web_external_base_url`: External base URL for the embedded web server, used to build the mute button URLs (e.g. `https://mymachine.tailnet-example.ts.net:5560`). If unset, no web server runs and notifications have no mute buttons. Note that the Ntfy web interface and iOS app will not run actions against non-HTTPS URLs; TLS may be terminated externally (e.g. by [Tailscale](https://tailscale.com/kb/1242/tailscale-serve)).
 - `web_port`: Port the web server binds to. Defaults to `5560`.
-- `web_bind_to`: IP address the web server binds to. Defaults to `*`.
+- `web_bind_to`: IP address the web server binds to. Defaults to `127.0.0.1`; use `*` to bind all interfaces.
 - `mute_short_h`: Duration of the short mute button, in hours. Defaults to `2`.
 - `mute_long_h`: Duration of the long mute button, in hours. Defaults to `6`.
 

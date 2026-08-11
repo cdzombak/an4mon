@@ -20,7 +20,7 @@ class TestWebConfig(unittest.TestCase):
         self.assertEqual(cfg.mute_long_h, 6)
         self.assertIsNone(cfg.web_external_base_url)
         self.assertEqual(cfg.web_port, 5560)
-        self.assertEqual(cfg.web_bind_to, "*")
+        self.assertEqual(cfg.web_bind_to, "127.0.0.1")
 
     def test_valid_web_config(self):
         cfg = Config.from_dict(

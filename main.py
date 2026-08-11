@@ -6,6 +6,7 @@ import queue
 import signal
 import sys
 import traceback
+from typing import Final
 
 import lib_mpex
 from aranet import ara_scan
@@ -14,7 +15,7 @@ from log import LOG_DEFAULT_FMT
 from ntfy import Notifier
 from poller import Poller
 
-CHILD_CHECK_INTERVAL_S = 5.0
+CHILD_CHECK_INTERVAL_S: Final = 5.0
 
 
 def main():

@@ -3,7 +3,7 @@ import datetime
 import logging
 import multiprocessing
 import time
-from typing import Optional
+from typing import Final, Optional
 
 import requests
 
@@ -15,7 +15,7 @@ from log import LOG_DEFAULT_FMT
 from mqtt import write_mqtt
 from ntfy import ReadingEvent
 
-HEALTHCHECK_TIMEOUT_S = 10.0
+HEALTHCHECK_TIMEOUT_S: Final = 10.0
 
 
 class Poller(lib_mpex.ChildProcess):

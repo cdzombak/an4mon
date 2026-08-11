@@ -2,6 +2,7 @@ import datetime
 import logging
 import multiprocessing
 from dataclasses import dataclass
+from typing import Final
 
 import requests
 
@@ -10,7 +11,7 @@ from co2 import Co2WarningLevel
 from config import Config
 from log import LOG_DEFAULT_FMT
 
-NTFY_TIMEOUT_S = 10.0
+NTFY_TIMEOUT_S: Final = 10.0
 
 
 @dataclass(frozen=True)

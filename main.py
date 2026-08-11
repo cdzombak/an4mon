@@ -14,6 +14,7 @@ from config import Config
 from log import LOG_DEFAULT_FMT
 from ntfy import Notifier
 from poller import Poller
+from web import WebServer
 
 CHILD_CHECK_INTERVAL_S: Final = 5.0
 
@@ -84,7 +85,16 @@ def main():
     ntfy_queue = None
     if cfg.notify:
         ntfy_queue = multiprocessing.Queue()
-        notifier = Notifier(cfg, ntfy_queue, log_level=ll)
+        mute_ns = None
+        if cfg.web_external_base_url:
+            mute_manager = multiprocessing.Manager()
+            mute_ns = mute_manager.Namespace()
+            mute_ns.mute_until = None
+            web_server = WebServer(cfg, mute_ns, ntfy_queue, log_level=ll)
+            procs.append(
+                multiprocessing.Process(target=web_server.run, args=(exit_queue,))
+            )
+        notifier = Notifier(cfg, ntfy_queue, log_level=ll, mute_ns=mute_ns)
         procs.append(multiprocessing.Process(target=notifier.run, args=(exit_queue,)))
     poller = Poller(cfg, ntfy_queue, log_level=ll, print_readings=args.print)
     procs.append(multiprocessing.Process(target=poller.run, args=(exit_queue,)))

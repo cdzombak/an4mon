@@ -11,3 +11,6 @@ tasks:
       - ruff check
       - prettier --check .
       - actionlint .github/workflows/*.yml
+  test:
+    cmds:
+      - ./venv/bin/python -m unittest discover -p "test_*.py"

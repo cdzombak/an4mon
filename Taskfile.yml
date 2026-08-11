@@ -3,14 +3,17 @@ version: "3"
 
 tasks:
   fmt:
+    desc: Format code
     cmds:
       - ruff format
       - prettier --write .
   lint:
+    desc: Lint code
     cmds:
       - ruff check
       - prettier --check .
       - actionlint .github/workflows/*.yml
   test:
+    desc: Run tests
     cmds:
       - ./venv/bin/python -m unittest discover -p "test_*.py"

@@ -1,6 +1,6 @@
 # `an4mon`: Aranet4 CO2 monitor & InfluxDB logger
 
-`an4mon` is a daemon that periodically reads from a [Aranet4 CO2 monitor](https://aranet.com/products/aranet4-home) and optionally:
+`an4mon` is a daemon that periodically reads from an [Aranet4 CO2 monitor](https://aranet.com/products/aranet4-home) and optionally:
 
 - Logs the data to an InfluxDB database.
 - Sends the data to an MQTT broker.
@@ -14,10 +14,12 @@ To install this tool: clone the repository, then install the application's depen
 
 ```shell
 git clone https://github.com/cdzombak/an4mon.git
-./an4mon/setup-deps.sh
+cd ./an4mon
+./setup-deps.sh
 ```
 
-> [!NOTE] > **Why not Docker?**
+> [!NOTE]
+> **Why not Docker?**
 >
 > I like to distribute Python applications in Docker where possible, but from my Internet searches it seems like using Bluetooth from inside a Docker container running on a macOS host is difficult or impossible.
 
@@ -38,7 +40,7 @@ With the device's address in hand, you'll need to create a configuration JSON fi
 - `aranet_device_address`: The address of your Aranet4 device as discovered via `--scan`. Required.
 - `device_name`: Name of the room/device. Written to the `aranet_name` tag for InfluxDB and MQTT. Required.
 - `poll_interval`: How often to read from the sensor, in minutes. Defaults to `2`.
-- `healthcheck_ping_url`: If provided, this URL will receive a GET request after each successful read from the Aranet4 device and completed logging to Influx/MQTT. (Useful for monitoring via an [Uptime Kuma](https://github.com/louislam/uptime-kuma) push monitor.)
+- `healthcheck_ping_url`: If provided, this URL will receive a GET request after reading from the Aranet4 device and (if configured) sending measurements to InfluxDB and MQTT succesfully. (Useful for monitoring via an [Uptime Kuma](https://github.com/louislam/uptime-kuma) push monitor.)
 
 **Notification-related keys:**
 
@@ -54,9 +56,7 @@ With the device's address in hand, you'll need to create a configuration JSON fi
 
 **Muting-related keys:**
 
-Setting `web_external_base_url` enables muting notifications: each CO2 notification carries "Mute Xh" and "Mute Yh" buttons, which send a request to an embedded web server in `an4mon`. While muted, notifications are suppressed — unless the CO2 level escalates from yellow to red, in which case that one notification is sent and the mute otherwise remains in effect. Muting while already red keeps red-level reminders suppressed. A new mute always replaces any previous one. When you mute, a minimum-priority confirmation notification arrives with an "Unmute" button.
-
-The same embedded web server also exposes `GET /health`, returning `200 {"status": "ok"}` after a recent successful sensor poll, or `503 {"status": "unhealthy", ...}` if there hasn't been one in over `2 * poll_interval` minutes. Useful for uptime monitoring (e.g. an Uptime Kuma HTTP(s) monitor) when `web_external_base_url` is set.
+Setting `web_external_base_url` enables muting notifications: each CO2 notification carries mute buttons, which send a request to an embedded web server in `an4mon` to mute notifications for some amount of time.
 
 - `web_external_base_url`: External base URL for the embedded web server, used to build the mute button URLs (e.g. `https://mymachine.tailnet-example.ts.net:5560`). If unset, no web server runs and notifications have no mute buttons. Note that the Ntfy web interface and iOS app will not run actions against non-HTTPS URLs; TLS may be terminated externally (e.g. by [Tailscale](https://tailscale.com/kb/1242/tailscale-serve)).
 - `web_port`: Port the web server binds to. Defaults to `5560`.
@@ -64,7 +64,7 @@ The same embedded web server also exposes `GET /health`, returning `200 {"status
 - `mute_short_h`: Duration of the short mute button, in hours. Defaults to `2`.
 - `mute_long_h`: Duration of the long mute button, in hours. Defaults to `6`.
 
-Mute state is kept in memory only; restarting `an4mon` clears any active mute.
+The same web server also exposes `GET /health`, returning `200 {"status": "ok"}` after a recent successful sensor poll, or `503 {"status": "unhealthy", ...}` if there hasn't been one in over `2 * poll_interval` minutes.
 
 **Influx-related keys:**
 
@@ -181,4 +181,4 @@ MIT; see [LICENSE](LICENSE) in this repository.
 Chris Dzombak;
 
 - [dzombak.com](https://www.dzombak.com/)
-- [github @cdzombak](https://www.github.com/cdzombak)
+- [GitHub @cdzombak](https://www.github.com/cdzombak)

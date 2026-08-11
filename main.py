@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import logging
 import multiprocessing
+import queue
 import sys
 import traceback
 
@@ -11,6 +12,8 @@ from config import Config
 from log import LOG_DEFAULT_FMT
 from ntfy import Notifier
 from poller import Poller
+
+CHILD_CHECK_INTERVAL_S = 5.0
 
 
 def main():
@@ -94,19 +97,29 @@ def main():
     for p in procs:
         p.start()
 
-    while any(p.is_alive() for p in procs):
-        e: lib_mpex.ChildExit = exit_queue.get()
-        if e.is_exc():
-            logger.error(f"{e.exc_info[0]} {e.exc_info[1]}")
-            logger.error(f"Error in {e.class_name} (pid {e.pid}): {e.error}")
-            traceback.print_exception(*e.exc_info)
+    while True:
+        try:
+            e: lib_mpex.ChildExit = exit_queue.get(timeout=CHILD_CHECK_INTERVAL_S)
+        except queue.Empty:
+            # a child killed hard (SIGKILL, segfault) never reports its exit,
+            # so periodically check liveness instead of blocking forever:
+            dead = [p for p in procs if not p.is_alive()]
+            if not dead:
+                continue
+            for p in dead:
+                logger.error(
+                    f"child (pid {p.pid}) died unexpectedly (exit code {p.exitcode})"
+                )
             my_exit(True)
         else:
-            logger.info(f"{e.class_name} (pid {e.pid}) exited: {e.error}")
-            my_exit(False)
-
-    for p in procs:
-        p.join()
+            if e.is_exc():
+                logger.error(f"{e.exc_info[0]} {e.exc_info[1]}")
+                logger.error(f"Error in {e.class_name} (pid {e.pid}): {e.error}")
+                traceback.print_exception(*e.exc_info)
+                my_exit(True)
+            else:
+                logger.info(f"{e.class_name} (pid {e.pid}) exited: {e.error}")
+                my_exit(False)
 
 
 if __name__ == "__main__":

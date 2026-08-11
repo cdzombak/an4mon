@@ -1,4 +1,5 @@
 import json
+import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Set
@@ -46,6 +47,11 @@ class Config:
     co2_red: int
     ntfy_priority_yellow: str
     ntfy_priority_red: str
+    mute_short_h: int
+    mute_long_h: int
+    web_external_base_url: Optional[str]
+    web_port: int
+    web_bind_to: str
     poll_interval: int
     influx_bucket: Optional[str]
     influx_host: Optional[str]
@@ -82,6 +88,11 @@ class Config:
             co2_red=data.get("co2_red", 1400),
             ntfy_priority_yellow=data.get("ntfy_priority_yellow", "3"),
             ntfy_priority_red=data.get("ntfy_priority_red", "5"),
+            mute_short_h=data.get("mute_short_h", 2),
+            mute_long_h=data.get("mute_long_h", 6),
+            web_external_base_url=data.get("web_external_base_url"),
+            web_port=data.get("web_port", 5560),
+            web_bind_to=data.get("web_bind_to", "*"),
             notify_room_name=data.get("notify_room_name"),
             poll_interval=data.get("poll_interval", 2),
             influx_bucket=data.get("influx_bucket"),
@@ -100,6 +111,8 @@ class Config:
         result.validate()
         if result.ntfy_server.endswith("/"):
             result.ntfy_server = result.ntfy_server[:-1]
+        if result.web_external_base_url and result.web_external_base_url.endswith("/"):
+            result.web_external_base_url = result.web_external_base_url[:-1]
         return result
 
     def validate(self):
@@ -112,6 +125,7 @@ class Config:
         if not isinstance(self.poll_interval, int) or self.poll_interval < 1:
             raise ConfigValidationError("poll_interval must be a positive integer")
         self._validate_ntfy()
+        self._validate_web()
         self._validate_influx()
         self._validate_mqtt()
 
@@ -145,6 +159,35 @@ class Config:
             raise ConfigValidationError(
                 "ntfy_server must start with http:// or https://"
             )
+
+    def _validate_web(self):
+        if not self.notify or self.web_external_base_url is None:
+            return
+        if not isinstance(self.web_external_base_url, str):
+            raise ConfigValidationError("web_external_base_url must be a string")
+        if not (
+            self.web_external_base_url.lower().startswith("http://")
+            or self.web_external_base_url.lower().startswith("https://")
+        ):
+            raise ConfigValidationError(
+                "web_external_base_url must start with http:// or https://"
+            )
+        if self.web_external_base_url.lower().startswith("http://"):
+            logging.getLogger(__name__).warning(
+                "ntfy actions (e.g. mute buttons) on a non-HTTPS "
+                "web_external_base_url will not work with the ntfy web "
+                "interface or iOS app; consider using HTTPS"
+            )
+        if not isinstance(self.mute_short_h, int) or self.mute_short_h < 1:
+            raise ConfigValidationError("mute_short_h must be a positive integer")
+        if not isinstance(self.mute_long_h, int) or self.mute_long_h < 1:
+            raise ConfigValidationError("mute_long_h must be a positive integer")
+        if not isinstance(self.web_port, int):
+            raise ConfigValidationError("web_port must be an integer")
+        if self.web_port <= 0 or self.web_port > 65535:
+            raise ConfigValidationError("web_port must be between 1 and 65535")
+        if not self.web_bind_to or not isinstance(self.web_bind_to, str):
+            raise ConfigValidationError("web_bind_to must be a string")
 
     def _validate_influx(self):
         if not self.influx:

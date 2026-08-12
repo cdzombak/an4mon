@@ -21,7 +21,7 @@ pyobjc-framework-CoreBluetooth==10.3.1
 pyobjc-framework-libdispatch==10.3.1
 python-dateutil==2.9.0.post0
 pytz==2024.1
-requests==2.32.3
+requests==2.32.4
 six==1.16.0
 sphinxcontrib-napoleon==0.7
 tblib==3.0.0

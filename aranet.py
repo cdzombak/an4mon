@@ -2,11 +2,10 @@ import asyncio
 import logging
 import sys
 
-from libclaranet4 import scan_ara4s, read_ara4, Reading
-
 import co2
 import conv
 from config import Config
+from libclaranet4 import Reading, read_ara4, scan_ara4s
 
 
 def _quiet_ble_warnings():
@@ -22,7 +21,7 @@ def ara_scan(runner: asyncio.Runner):
     for ara4 in scan_ara4s(runner):
         print(f"{ara4.name} ({ara4.rssi} dBm)")
         print(f"\t{ara4.address}")
-        print("")
+        print()
 
 
 def ara_read(runner: asyncio.Runner, addr: str) -> Reading:

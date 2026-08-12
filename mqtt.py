@@ -2,11 +2,11 @@ import datetime
 import json
 import logging
 
-import paho.mqtt.publish as publish
+from paho.mqtt import publish
 
+import conv
 from co2 import Co2WarningLevel
 from config import Config
-import conv
 from libclaranet4 import Reading
 
 
@@ -54,7 +54,7 @@ def write_mqtt(cfg: Config, reading: Reading, now: datetime.datetime) -> bool:
             auth=auth,
         )
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - report any publish failure, keep poller alive
         logging.getLogger(__name__).error(
             f"failed publishing to MQTT '{cfg.mqtt_broker}': {e}"
         )

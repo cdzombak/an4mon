@@ -4,7 +4,7 @@ import logging
 import multiprocessing
 import time
 from multiprocessing.managers import Namespace
-from typing import Final, Optional
+from typing import Final
 
 import requests
 
@@ -23,10 +23,10 @@ class Poller(lib_mpex.ChildProcess):
     def __init__(
         self,
         config: Config,
-        ntfy_queue: Optional[multiprocessing.Queue],  # of ReadingEvent
+        ntfy_queue: multiprocessing.Queue | None,  # of ReadingEvent
         log_level: int,
         print_readings: bool,
-        health_ns: Optional[Namespace] = None,
+        health_ns: Namespace | None = None,
     ):
         self._config = config
         self._ntfy_queue = ntfy_queue
@@ -52,7 +52,7 @@ class Poller(lib_mpex.ChildProcess):
         now = datetime.datetime.now(datetime.UTC)
         try:
             reading = ara_read(runner, self._config.aranet_device_address)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - a bad read shouldn't kill the poller
             logger.error(
                 f"failed reading from {self._config.aranet_device_address}: {e}"
             )
@@ -77,12 +77,11 @@ class Poller(lib_mpex.ChildProcess):
                 if not write_influx(self._config, reading, now):
                     logger.error("influx write failed")
                     healthy = False
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - an influx failure shouldn't kill the poller
                 logger.error(f"influx write failed: {e}")
                 healthy = False
-        if self._config.mqtt:
-            if not write_mqtt(self._config, reading, now):
-                healthy = False
+        if self._config.mqtt and not write_mqtt(self._config, reading, now):
+            healthy = False
 
         if healthy and self._config.healthcheck_ping_url:
             try:

@@ -1,6 +1,7 @@
 import asyncio
 from dataclasses import dataclass
-from bleak import BleakScanner, BleakClient
+
+from bleak import BleakClient, BleakScanner
 
 #
 # This file taken from https://github.com/bede/claranet4 at commit

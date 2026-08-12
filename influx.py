@@ -2,11 +2,10 @@ import datetime
 
 from influxdb import InfluxDBClient
 
-from libclaranet4 import Reading
-
 import conv
 from co2 import Co2WarningLevel
 from config import Config
+from libclaranet4 import Reading
 
 
 def write_influx(cfg: Config, reading: Reading, now: datetime.datetime) -> bool:

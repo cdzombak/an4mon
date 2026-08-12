@@ -3,7 +3,7 @@ import logging
 import multiprocessing
 from dataclasses import dataclass
 from multiprocessing.managers import Namespace
-from typing import Final, Optional
+from typing import Final
 
 import requests
 
@@ -52,7 +52,7 @@ def should_notify(
     last_time: datetime.datetime,
     level: Co2WarningLevel,
     now: datetime.datetime,
-    mute_until: Optional[datetime.datetime] = None,
+    mute_until: datetime.datetime | None = None,
 ) -> bool:
     if level == Co2WarningLevel.RED:
         if last_level != Co2WarningLevel.RED:
@@ -80,7 +80,7 @@ class Notifier(lib_mpex.ChildProcess):
         config: Config,
         input_queue: multiprocessing.Queue,  # of ReadingEvent | MuteEvent
         log_level: int,
-        mute_ns: Optional[Namespace] = None,
+        mute_ns: Namespace | None = None,
     ):
         self._config = config
         self._input_queue = input_queue

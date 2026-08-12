@@ -2,7 +2,6 @@ import json
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Set
 
 
 class ConfigValidationError(ValueError):
@@ -31,7 +30,7 @@ class NtfyPriority(Enum):
     URGENT = "urgent"
 
     @staticmethod
-    def all_values() -> Set[str]:
+    def all_values() -> set[str]:
         return {e.value for e in NtfyPriority}
 
 
@@ -41,11 +40,11 @@ class Config:
     notify: bool
     influx: bool
     mqtt: bool
-    healthcheck_ping_url: Optional[str]
+    healthcheck_ping_url: str | None
     ntfy_server: str
-    ntfy_token: Optional[str]
-    ntfy_topic: Optional[str]
-    notify_room_name: Optional[str]
+    ntfy_token: str | None
+    ntfy_topic: str | None
+    notify_room_name: str | None
     notify_yellow_every: int
     notify_red_every: int
     co2_yellow: int
@@ -54,22 +53,22 @@ class Config:
     ntfy_priority_red: str
     mute_short_h: int
     mute_long_h: int
-    web_external_base_url: Optional[str]
+    web_external_base_url: str | None
     web_port: int
     web_bind_to: str
     poll_interval: int
-    influx_bucket: Optional[str]
-    influx_host: Optional[str]
+    influx_bucket: str | None
+    influx_host: str | None
     influx_port: int
-    influx_username: Optional[str]
-    influx_password: Optional[str]
-    influx_measurement_name: Optional[str]
+    influx_username: str | None
+    influx_password: str | None
+    influx_measurement_name: str | None
     device_name: str
-    mqtt_broker: Optional[str]
+    mqtt_broker: str | None
     mqtt_port: int
-    mqtt_username: Optional[str]
-    mqtt_password: Optional[str]
-    mqtt_topic: Optional[str]
+    mqtt_username: str | None
+    mqtt_password: str | None
+    mqtt_topic: str | None
 
     @staticmethod
     def from_file(file_path: str) -> "Config":
@@ -114,8 +113,7 @@ class Config:
             mqtt_topic=data.get("mqtt_topic"),
         )
         result.validate()
-        if result.ntfy_server.endswith("/"):
-            result.ntfy_server = result.ntfy_server[:-1]
+        result.ntfy_server = result.ntfy_server.removesuffix("/")
         if result.web_external_base_url and result.web_external_base_url.endswith("/"):
             result.web_external_base_url = result.web_external_base_url[:-1]
         return result

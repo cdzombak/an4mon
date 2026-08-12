@@ -9,6 +9,11 @@ class ConfigValidationError(ValueError):
     pass
 
 
+def _is_int(value) -> bool:
+    # bool is a subclass of int, but is not a meaningful number:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
 class NtfyPriority(Enum):
     """copied from https://github.com/cdzombak/driveway-monitor/blob/main/ntfy.py ;
     used for config validation only"""
@@ -122,7 +127,7 @@ class Config:
             raise ConfigValidationError("aranet_device_address is required")
         if not self.device_name or not isinstance(self.device_name, str):
             raise ConfigValidationError("device_name is required")
-        if not isinstance(self.poll_interval, int) or self.poll_interval < 1:
+        if not _is_int(self.poll_interval) or self.poll_interval < 1:
             raise ConfigValidationError("poll_interval must be a positive integer")
         self._validate_ntfy()
         self._validate_web()
@@ -178,11 +183,11 @@ class Config:
                 "web_external_base_url will not work with the ntfy web "
                 "interface or iOS app; consider using HTTPS"
             )
-        if not isinstance(self.mute_short_h, int) or self.mute_short_h < 1:
+        if not _is_int(self.mute_short_h) or self.mute_short_h < 1:
             raise ConfigValidationError("mute_short_h must be a positive integer")
-        if not isinstance(self.mute_long_h, int) or self.mute_long_h < 1:
+        if not _is_int(self.mute_long_h) or self.mute_long_h < 1:
             raise ConfigValidationError("mute_long_h must be a positive integer")
-        if not isinstance(self.web_port, int):
+        if not _is_int(self.web_port):
             raise ConfigValidationError("web_port must be an integer")
         if self.web_port <= 0 or self.web_port > 65535:
             raise ConfigValidationError("web_port must be between 1 and 65535")
@@ -196,7 +201,7 @@ class Config:
             raise ConfigValidationError("influx_bucket is required")
         if not self.influx_host or not isinstance(self.influx_host, str):
             raise ConfigValidationError("influx_server is required")
-        if not isinstance(self.influx_port, int):
+        if not _is_int(self.influx_port):
             raise ConfigValidationError("influx_port must be an integer")
         if self.influx_port <= 0 or self.influx_port > 65535:
             raise ConfigValidationError("influx_port must be between 1 and 65535")
@@ -222,7 +227,7 @@ class Config:
             return
         if not self.mqtt_broker or not isinstance(self.mqtt_broker, str):
             raise ConfigValidationError("mqtt_broker is required")
-        if not isinstance(self.mqtt_port, int):
+        if not _is_int(self.mqtt_port):
             raise ConfigValidationError("mqtt_port must be an integer")
         if self.mqtt_port <= 0 or self.mqtt_port > 65535:
             raise ConfigValidationError("mqtt_port must be between 1 and 65535")

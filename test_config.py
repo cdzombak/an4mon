@@ -13,6 +13,39 @@ def _base_dict() -> dict:
     }
 
 
+class TestPollInterval(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(Config.from_dict(_base_dict()).poll_interval, 2)
+
+    def test_must_be_positive_int(self):
+        for bad in (0, -1, "2", 1.5, True, False):
+            with self.assertRaises(ConfigValidationError):
+                Config.from_dict(_base_dict() | {"poll_interval": bad})
+
+
+class TestPorts(unittest.TestCase):
+    def test_influx_port_range(self):
+        base = _base_dict() | {
+            "influx": True,
+            "influx_bucket": "test-bucket",
+            "influx_host": "influx.example.com",
+            "influx_measurement_name": "air",
+        }
+        for bad in (0, -1, 65536, "8086", True, False):
+            with self.assertRaises(ConfigValidationError):
+                Config.from_dict(base | {"influx_port": bad})
+
+    def test_mqtt_port_range(self):
+        base = _base_dict() | {
+            "mqtt": True,
+            "mqtt_broker": "mqtt.example.com",
+            "mqtt_topic": "test-topic",
+        }
+        for bad in (0, -1, 65536, "1883", True, False):
+            with self.assertRaises(ConfigValidationError):
+                Config.from_dict(base | {"mqtt_port": bad})
+
+
 class TestWebConfig(unittest.TestCase):
     def test_defaults(self):
         cfg = Config.from_dict(_base_dict())
@@ -50,7 +83,7 @@ class TestWebConfig(unittest.TestCase):
             )
 
     def test_mute_hours_must_be_positive_ints(self):
-        for bad in (0, -1, "2", 1.5):
+        for bad in (0, -1, "2", 1.5, True, False):
             with self.assertRaises(ConfigValidationError):
                 Config.from_dict(
                     _base_dict()
@@ -69,7 +102,7 @@ class TestWebConfig(unittest.TestCase):
                 )
 
     def test_web_port_range(self):
-        for bad in (0, -1, 65536, "8080"):
+        for bad in (0, -1, 65536, "8080", True, False):
             with self.assertRaises(ConfigValidationError):
                 Config.from_dict(
                     _base_dict()

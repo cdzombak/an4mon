@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Derive version string
         id: derive_version
         run: echo "derived_version=$(./.version.sh)" >> "$GITHUB_OUTPUT"
@@ -66,9 +66,9 @@ jobs:
     name: Lint & Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: "pip"
@@ -85,15 +85,15 @@ jobs:
       - name: Prettier
         run: prettier --check .
       - name: Actionlint
-        uses: raven-actions/actionlint@01fce4f43a270a612932cb1c64d40505a029f821
+        uses: raven-actions/actionlint@v2
 
   test:
     name: Test
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: "pip"
@@ -115,9 +115,9 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Create GitHub release
-        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631
+        uses: softprops/action-gh-release@v3
         with:
           prerelease: ${{ needs.meta.outputs.is_prerelease == 'true' }}
           generate_release_notes: true
@@ -131,9 +131,9 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Update running major/minor version tags
-        uses: sersoft-gmbh/running-release-tags-action@890dc5c1d9edd0d0fef2fd67c6de2df641e720a6
+        uses: sersoft-gmbh/running-release-tags-action@v4
         with:
           fail-on-non-semver-tag: true
           create-release: false
@@ -146,7 +146,7 @@ jobs:
     needs: [meta, lint, test, release, tags]
     steps:
       - name: Send success notification
-        uses: niniyas/ntfy-action@2e4de8e810b0b28dba54344de960426adbfe136e
+        uses: niniyas/ntfy-action@v1.0.6
         if: ${{ !contains(needs.*.result, 'failure') && (needs.meta.outputs.is_release == 'true' || needs.meta.outputs.is_prerelease == 'true') }}
         with:
           url: "https://ntfy.cdzombak.net"
@@ -157,7 +157,7 @@ jobs:
           title: ${{ github.event.repository.name }} ${{ needs.meta.outputs.derived_version }} available
           details: ${{ github.event.repository.name }} version ${{ needs.meta.outputs.derived_version }} is now available.
       - name: Send failure notification
-        uses: niniyas/ntfy-action@2e4de8e810b0b28dba54344de960426adbfe136e
+        uses: niniyas/ntfy-action@v1.0.6
         if: ${{ contains(needs.*.result, 'failure') }}
         with:
           url: "https://ntfy.cdzombak.net"

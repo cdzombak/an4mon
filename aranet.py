@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sys
 
 from libclaranet4 import scan_ara4s, read_ara4, Reading
 
@@ -43,3 +44,5 @@ def ara_print(cfg: Config, r: Reading):
     )
     print(f"pressure: {r.pressure} mbar ({conv.mbar_to_inhg(r.pressure):.2f} inHg)")
     print(f"humidity: {r.humidity} %")
+    # stdout is block-buffered when redirected to a file by launchd:
+    sys.stdout.flush()

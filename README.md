@@ -1,4 +1,4 @@
-# `an4mon`: Aranet4 CO2 monitor & InfluxDB logger
+# `an4mon`: Aranet4 CO2 monitor & InfluxDB/MQTT logger
 
 `an4mon` is a daemon that periodically reads from an [Aranet4 CO2 monitor](https://aranet.com/products/aranet4-home) and optionally:
 

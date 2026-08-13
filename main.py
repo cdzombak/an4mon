@@ -99,14 +99,22 @@ def main():
             health_ns.last_poll_at = None
             web_server = WebServer(cfg, mute_ns, health_ns, ntfy_queue, log_level=ll)
             procs.append(
-                multiprocessing.Process(target=web_server.run, args=(exit_queue,))
+                multiprocessing.Process(
+                    target=web_server.run, args=(exit_queue,), name="WebServer"
+                )
             )
         notifier = Notifier(cfg, ntfy_queue, log_level=ll, mute_ns=mute_ns)
-        procs.append(multiprocessing.Process(target=notifier.run, args=(exit_queue,)))
+        procs.append(
+            multiprocessing.Process(
+                target=notifier.run, args=(exit_queue,), name="Notifier"
+            )
+        )
     poller = Poller(
         cfg, ntfy_queue, log_level=ll, print_readings=args.print, health_ns=health_ns
     )
-    procs.append(multiprocessing.Process(target=poller.run, args=(exit_queue,)))
+    procs.append(
+        multiprocessing.Process(target=poller.run, args=(exit_queue,), name="Poller")
+    )
 
     def handle_sigterm(signum, frame):
         logger.info("received SIGTERM; exiting ...")
@@ -141,7 +149,7 @@ def main():
             p.join(timeout=max(0.0, deadline - time.monotonic()))
         for p in started:
             if p.is_alive():
-                logger.warning(f"child (pid {p.pid}) did not exit; killing it")
+                logger.warning(f"child {p.name} (pid {p.pid}) did not exit; killing it")
                 p.kill()
                 p.join()
 
@@ -162,7 +170,8 @@ def supervise(
                 continue
             for p in dead:
                 logger.error(
-                    f"child (pid {p.pid}) died unexpectedly (exit code {p.exitcode})"
+                    f"child {p.name} (pid {p.pid}) died unexpectedly "
+                    f"(exit code {p.exitcode})"
                 )
             sys.exit(1)
         else:

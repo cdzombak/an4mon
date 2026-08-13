@@ -5,6 +5,7 @@ import multiprocessing
 import queue
 import signal
 import sys
+import time
 import traceback
 from typing import Final
 
@@ -17,6 +18,9 @@ from poller import Poller
 from web import WebServer
 
 CHILD_CHECK_INTERVAL_S: Final = 5.0
+# bounds shutdown so a wedged child doesn't outlive the supervisor's own
+# grace period under launchd or systemd:
+CHILD_SHUTDOWN_TIMEOUT_S: Final = 5.0
 
 
 def main():
@@ -127,8 +131,14 @@ def main():
     finally:
         for p in started:
             p.terminate()
+        deadline = time.monotonic() + CHILD_SHUTDOWN_TIMEOUT_S
         for p in started:
-            p.join()
+            p.join(timeout=max(0.0, deadline - time.monotonic()))
+        for p in started:
+            if p.is_alive():
+                logger.warning(f"child (pid {p.pid}) did not exit; killing it")
+                p.kill()
+                p.join()
 
 
 def supervise(

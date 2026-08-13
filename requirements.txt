@@ -15,7 +15,7 @@ MarkupSafe==3.0.3
 msgpack==1.0.8
 paho-mqtt==2.1.0
 pockets==0.9.1
-pyobjc-core==10.3.1
+pyobjc-core==12.2.1
 pyobjc-framework-Cocoa==10.3.1
 pyobjc-framework-CoreBluetooth==10.3.1
 pyobjc-framework-libdispatch==10.3.1

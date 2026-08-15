@@ -17,7 +17,7 @@ pyobjc-framework-Cocoa==12.2.2
 pyobjc-framework-CoreBluetooth==12.2.2
 pyobjc-framework-libdispatch==12.2.2
 python-dateutil==2.9.0.post0
-pytz==2024.1
+pytz==2026.3.post1
 requests==2.32.4
 six==1.16.0
 tblib==3.0.0

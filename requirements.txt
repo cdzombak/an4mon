@@ -10,7 +10,7 @@ influxdb==5.3.2
 itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
-msgpack==1.0.8
+msgpack==1.2.1
 paho-mqtt==2.1.0
 pyobjc-core==12.2.2
 pyobjc-framework-Cocoa==12.2.2
